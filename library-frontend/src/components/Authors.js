@@ -1,35 +1,39 @@
-  
+
 import { useQuery, useMutation } from '@apollo/client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ALL_AUTHORS, UPDATE_AUTHOR } from '../queries'
 
 const Authors = (props) => {
 
-  const [name, setName] = useState('')
   const [setBornTo, setSetBornTo] = useState('')
+  const [name, setName] = useState('')
   
   const result = useQuery(ALL_AUTHORS)
-  const [ updateAuthor ] = useMutation(UPDATE_AUTHOR, {
-    refetchQueries: [ { query: ALL_AUTHORS } ]
+  const [updateAuthor] = useMutation(UPDATE_AUTHOR, {
+    refetchQueries: [{ query: ALL_AUTHORS }]
   })
 
+  useEffect(() => {
+    if (!result.loading) setName(result.data.allAuthors[0].name)
+  }, [result.loading])
+  
   const submit = async (event) => {
     event.preventDefault()
     
     updateAuthor({ variables: { name, setBornTo } })
-
+    
     setName('')
     setSetBornTo('')
   }
-
+  
   if (!props.show) {
     return null
   }
-
+  
   if (result.loading) {
     return <div>loading...</div>
   }
-  
+
   const authors = result.data.allAuthors
 
   return (

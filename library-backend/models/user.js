@@ -14,6 +14,11 @@ const schema = new mongoose.Schema({
       ref: 'Author'
     }
   ],
+  favoriteGenre: {
+    type: String,
+    required: true,
+    minlength: 3 
+  }
 })
 
 schema.plugin(uniqueValidator)

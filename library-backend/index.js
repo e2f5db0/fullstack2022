@@ -1,4 +1,4 @@
-const { ApolloServer, UserInputError, gql } = require('apollo-server')
+const { ApolloServer, UserInputError, AuthenticationError, gql } = require('apollo-server')
 const { v1: uuid } = require('uuid')
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
@@ -35,11 +35,11 @@ let authors = [
     id: "afa5b6f1-344d-11e9-a414-719c6709cf3e",
     born: 1821
   },
-  { 
+  {
     name: 'Joshua Kerievsky', // birthyear not known
     id: "afa5b6f2-344d-11e9-a414-719c6709cf3e",
   },
-  { 
+  {
     name: 'Sandi Metz', // birthyear not known
     id: "afa5b6f3-344d-11e9-a414-719c6709cf3e",
   },
@@ -83,7 +83,7 @@ let books = [
     author: 'Joshua Kerievsky',
     id: "afa5de01-344d-11e9-a414-719c6709cf3e",
     genres: ['refactoring', 'patterns']
-  },  
+  },
   {
     title: 'Practical Object-Oriented Design, An Agile Primer Using Ruby',
     published: 2012,
@@ -168,33 +168,35 @@ type Token {
 
 const resolvers = {
   Query: {
-      bookCount: () => Book.collection.countDocuments(),
-      authorCount: () => Author.collection.countDocuments(),
-      allBooks: async (root, args) => {
-        if (!args.author && !args.genre) {
-          return await Book.find({})
+    bookCount: () => Book.collection.countDocuments(),
+    authorCount: () => Author.collection.countDocuments(),
+    allBooks: async (root, args) => {
+      if (!args.author && !args.genre) {
+        return await Book.find({})
+          .populate('author')
+      }
+      let clause
+      if (args.genre && args.author) {
+        clause = (b) => b.author === args.author && b.genres.includes(args.genre)
+      }
+      if (args.author && !args.genre) {
+        clause = (b) => b.author === args.author
+      }
+      if (args.genre && !args.author) {
+        clause = (b) => b.genres.includes(args.genre)
+      }
+      const allBooks = await Book.find({})
+        .populate('author')
+      let filteredBooks = []
+      allBooks.forEach(b => {
+        if (clause(b)) {
+          filteredBooks.push(b)
         }
-        let clause
-        if (args.genre && args.author) {
-          clause = (b) => b.author === args.author && b.genres.includes(args.genre)
-        }
-        if (args.author && !args.genre) {
-          clause = (b) => b.author === args.author
-        }
-        if (args.genre && !args.author) {
-          clause = (b) => b.genres.includes(args.genre)
-        }
-        const allBooks = await Book.find({})
-        let filteredBooks = []
-        allBooks.forEach(b => {
-          if (clause(b)) {
-            filteredBooks.push(b)
-          }
-        })
-        return filteredBooks
-      },
-      allAuthors: async () => await Author.find({}),
-      me: (root, args, context) => context.currentUser 
+      })
+      return filteredBooks
+    },
+    allAuthors: async () => await Author.find({}),
+    me: (root, args, context) => context.currentUser
   },
   Mutation: {
     addBook: async (root, args, context) => {
@@ -245,7 +247,7 @@ const resolvers = {
     },
     createUser: (root, args) => {
       const user = new User({ ...args })
-  
+
       return user.save()
         .catch(error => {
           throw new UserInputError(error.message, {
@@ -255,16 +257,16 @@ const resolvers = {
     },
     login: async (root, args) => {
       const user = await User.findOne({ username: args.username })
-  
-      if ( !user || args.password !== 'secret' ) {
+
+      if (!user || args.password !== 'secret') {
         throw new UserInputError("wrong credentials")
       }
-  
+
       const userForToken = {
         username: user.username,
         id: user._id,
       }
-  
+
       return { value: jwt.sign(userForToken, JWT_SECRET) }
     },
   },
