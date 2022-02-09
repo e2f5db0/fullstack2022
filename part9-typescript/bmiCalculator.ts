@@ -1,5 +1,3 @@
-const height: number = Number(process.argv[2])
-const weight: number = Number(process.argv[3])
 
 const calculateBmi = (height: number, weight: number): string => {
     const bmi = weight / ((height / 100) * (height / 100))
@@ -16,10 +14,4 @@ const calculateBmi = (height: number, weight: number): string => {
     }
 }
 
-try {
-    console.log(calculateBmi(height, weight))
-} catch (error: unknown) {
-    if (error instanceof Error) {
-        console.log('Error:', error.message)
-    }
-}
+export { calculateBmi }
