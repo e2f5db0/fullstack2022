@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@mui/icons-material": "^5.4.4",
     "axios": "^0.21.1",
     "formik": "^2.2.6",
     "react": "^17.0.1",
