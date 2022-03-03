@@ -7,7 +7,7 @@ import AddPatientModal from "../AddPatientModal";
 import { Patient } from "../types";
 import { apiBaseUrl } from "../constants";
 import HealthRatingBar from "../components/HealthRatingBar";
-import { addPatient, setPatientState, useStateValue } from "../state";
+import { addPatient, useStateValue } from "../state";
 import { Link } from "react-router-dom";
 
 const PatientListPage = () => {
@@ -36,17 +36,6 @@ const PatientListPage = () => {
     }
   };
 
-  const setPatient = async (id: string) => {
-    try {
-      const { data: patientData } = await axios.get<Patient>(
-        `${apiBaseUrl}/patients/${id}`
-      );
-      dispatch(setPatientState(patientData));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   return (
     <div className="App">
       <Container textAlign="center">
@@ -64,7 +53,7 @@ const PatientListPage = () => {
         <Table.Body>
           {Object.values(patients).map((patient: Patient) => (
             <Table.Row key={patient.id}>
-              <Table.Cell onClick={() => setPatient(patient.id)}><Link to={`/patient`}>{patient.name}</Link></Table.Cell>
+              <Table.Cell><Link to={`/patient/${patient.id}`}>{patient.name}</Link></Table.Cell>
               <Table.Cell>{patient.gender}</Table.Cell>
               <Table.Cell>{patient.occupation}</Table.Cell>
               <Table.Cell>
