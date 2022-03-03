@@ -1,7 +1,7 @@
 import patientData from '../data/extendedPatients';
 import { v1 as uuid } from 'uuid';
 
-import { NewPatientEntry, PatientEntry, PublicPatient } from '../types';
+import { NewPatientEntry, PatientEntry } from '../types';
 import toNewPatientEntry from '../utils';
 
 const patients: Array<PatientEntry> = patientData;
@@ -14,7 +14,7 @@ const getEntries = (): Omit<PatientEntry, 'ssn'>[] => {
     });
 };
 
-const getEntry = (id: string): PublicPatient | undefined => {
+const getEntry = (id: string): PatientEntry | undefined => {
     const result = patients.filter(p => p.id === id)
     if (result.length > 0) {
         let patient = result[0];
